@@ -7,6 +7,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -57,13 +61,18 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 	ArrayList<String> arrListTrackingNos = new ArrayList<String>();
 
     private final DataFormatter fmt = new DataFormatter();
+    
+    String strTrackingNumber = "";
+	String strDeliveryCarrier = "";
+	String strError = "";
 
     //private static final long serialVersionUID = 1L;
 
     JButton button;
     JLabel waitLabel;
 
-    ShipmentTrackerFrame() {
+    ShipmentTrackerFrame() 
+    {
         this.setLayout(null);
 
         JLabel headingLabel = new JLabel();
@@ -129,7 +138,47 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 					}  
 
                     compareAndPopulateLists();
-                } catch (Exception e) {
+                    
+                    System.out.println("\nFetching details for the below Tracking IDs... Please wait...\n");
+					
+					//The tracking IDs are now passed to respective APIs for details
+					////////////////////////////API Details Start//////////////////////////////////////////
+					for(int i=0; i<arrListTrackingNos.size(); i++)
+					{
+						try
+						{
+							String strCarrierService = arrListCarrierServices.get(i);
+							String strTrackingNos = arrListTrackingNos.get(i);
+							
+							System.out.println(strTrackingNos+" - "+strCarrierService);
+							
+							strTrackingNumber = strTrackingNos;
+							strDeliveryCarrier = strCarrierService;
+							
+							//////////////////////////////UPS Start //////////////////////////////////////
+							if(strCarrierService.equals("UPS"))
+							{
+								trackingUPS(strTrackingNos);
+							}
+							//////////////////////////////UPS End //////////////////////////////////////
+							//////////////////////////////Old Dominion LTL Starts //////////////////////////////////////
+							else if(strCarrierService.equals("Old Dominion LTL"))
+							{
+								trackingOldDominion(strTrackingNos);
+							}
+							else
+							{
+								strError = strError+"\nDetails not available for Tracking ID - "+strTrackingNumber+" ("+strDeliveryCarrier+") \n";
+							}
+						}
+						catch (Exception e)
+						{
+							strError = strError+"\nDetails not available for Tracking ID - "+strTrackingNumber+" ("+strDeliveryCarrier+") \n";
+						}
+					}
+                } 
+                catch (Exception e) 
+                {
                     System.out.println("ERROR - Please contact admin");
                     return;
                 }
@@ -146,7 +195,8 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
         ArrayList<Integer> columnsToRead = new ArrayList<Integer>();
         columnsToRead.add(Arrays.asList(header).indexOf("Carrier"));
         columnsToRead.add(Arrays.asList(header).indexOf("Tracking"));
-
+        
+        String strCarrierService1 = null;
         String[] nextLine;
         while ((nextLine = reader.readNext()) != null) 
         {
@@ -154,11 +204,31 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
             {
             	if(columnsToRead.indexOf(columnIndex) == 0)
             	{
-            		arrListCarrierServicesCSV.add(nextLine[columnIndex]);
+            		strCarrierService1 = nextLine[columnIndex];
+            		arrListCarrierServicesCSV.add(strCarrierService1);
             	}
             	else if(columnsToRead.indexOf(columnIndex) == 1)
             	{
-            		arrListTrackingNosCSV.add(nextLine[columnIndex]);
+            		String strListTrackingNo = nextLine[columnIndex];
+            		
+            		// There are a few tracking nos in the wrong format in the CSV
+            		//The below if loops are to manually correct those tracking nos
+            		
+            		if(strCarrierService1.equals("Old Dominion LTL"))
+    				{
+    					if(strListTrackingNo.length()==10)
+    					{
+    						arrListTrackingNosCSV.add("0"+strListTrackingNo);
+    					}
+    					else
+    					{
+    						arrListTrackingNosCSV.add(strListTrackingNo);
+    					}
+    				}
+    				else
+    				{
+    					arrListTrackingNosCSV.add(strListTrackingNo);
+    				}
             	}
             }
         }
@@ -292,5 +362,41 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 		
 		System.out.println("Final List of Carrier Services: " + arrListCarrierServices);
         System.out.println("Final List of Tracking Numbers: " + arrListTrackingNos);
+    }
+    
+    void trackingUPS(String strTrackingNos) throws IOException, InterruptedException
+    {
+    	HttpRequest request = HttpRequest.newBuilder()
+				.uri(URI.create("https://onlinetools.ups.com/track/v1/details/"+strTrackingNos+"?locale=en_US"))
+				.header("Username", "TechdowAnalytics")
+				.header("Password", "GongSiMiMa516!")
+				.header("Content-Type", "application/json")
+				.header("Accept", "application/json")
+				.header("AccessLicenseNumber", "0DD5F980C16E20A0")
+				.method("GET", HttpRequest.BodyPublishers.noBody())
+				.build();
+		
+		HttpResponse<String> response = null;
+		
+		response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+		
+		String responseOutput = response.body();
+    }
+    
+    void trackingOldDominion(String strTrackingNos) throws IOException, InterruptedException
+    {
+    	HttpRequest request = HttpRequest.newBuilder()
+				.uri(URI.create("https://api.odfl.com/tracking/v3.0/shipment.track"))
+				.header("content-type", "application/json")
+				.method("POST", HttpRequest.BodyPublishers.ofString("{\r\n"
+						+ "    \"referenceType\": \"PRO\",\r\n"
+						+ "    \"referenceNumber\": \""+strTrackingNos+"\"\r\n"
+						+ "}"))
+				.build();
+		HttpResponse<String> response = null;
+		
+		response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+		
+		String responseOutput = response.body();
     }
 }
