@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import com.opencsv.exceptions.CsvValidationException;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -108,5 +109,49 @@ class TestShipmentTracker
         
         assertEquals(expectedCarrierServices, frame.arrListCarrierServices);
         assertEquals(expectedTrackingNos, frame.arrListTrackingNos);
+    }
+    
+    @Test
+    void testTrackingUPS() throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException 
+    {
+        ShipmentTrackerFrame frame = new ShipmentTrackerFrame();
+        
+        ArrayList<String> expectedTrackingService = new ArrayList<String>();
+    	ArrayList<String> expectedTrackingNos = new ArrayList<String>();
+    	ArrayList<String> expectedDestinationState = new ArrayList<String>();
+    	ArrayList<String> expectedDestinationCity = new ArrayList<String>();
+    	ArrayList<String> expectedDelivery = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryStatus = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryStartDate = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryEndDate = new ArrayList<String>();
+    	ArrayList<String> expectedWarning = new ArrayList<String>();
+    	ArrayList<String> expectedTimeTaken = new ArrayList<String>();
+    	ArrayList<String> expectedTrackerDate = new ArrayList<String>();
+
+        frame.trackingUPS("1ZY5F5030332143355");
+        
+        expectedTrackingService.add("UPS");
+        expectedTrackingNos.add("1ZY5F5030332143355");
+        expectedDestinationState.add("MO");
+        expectedDestinationCity.add("BRIDGETON");
+        expectedDelivery.add("DELIVERED");
+        expectedDeliveryStatus.add("DELIVERED // Location - BRIDGETON, MO, US // Date - 09/20/2023 // Time - 111909");
+        expectedDeliveryStartDate.add("09/18/2023");
+        expectedDeliveryEndDate.add("09/20/2023");
+        expectedWarning.add("");
+        expectedTimeTaken.add("2");
+        expectedTrackerDate.add("09/20/2023");
+        
+        assertEquals(expectedTrackingService, frame.arrTrackingService);
+        assertEquals(expectedTrackingNos, frame.arrTrackingNos);
+        assertEquals(expectedDestinationState, frame.arrDestinationState);
+        assertEquals(expectedDestinationCity, frame.arrDestinationCity);
+        assertEquals(expectedDelivery, frame.arrDelivery);
+        assertEquals(expectedDeliveryStatus, frame.arrDeliveryStatus);
+        assertEquals(expectedDeliveryStartDate, frame.arrDeliveryStartDate);
+        assertEquals(expectedDeliveryEndDate, frame.arrDeliveryEndDate);
+        assertEquals(expectedWarning, frame.arrWarning);
+        assertEquals(expectedTimeTaken, frame.arrTimeTaken);
+        assertEquals(expectedTrackerDate, frame.arrTrackerDate);
     }
 }

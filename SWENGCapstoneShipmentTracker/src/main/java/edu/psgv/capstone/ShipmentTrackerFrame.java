@@ -11,9 +11,15 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -26,6 +32,9 @@ import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
@@ -59,7 +68,20 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 	//Lists of Data that is to be checked after merging csv and master as per requirement
 	ArrayList<String> arrListCarrierServices = new ArrayList<String>();
 	ArrayList<String> arrListTrackingNos = new ArrayList<String>();
-
+	
+	//Lists of output data
+	ArrayList<String> arrTrackingService = new ArrayList<String>();
+	ArrayList<String> arrTrackingNos = new ArrayList<String>();
+	ArrayList<String> arrDestinationState = new ArrayList<String>();
+	ArrayList<String> arrDestinationCity = new ArrayList<String>();
+	ArrayList<String> arrDelivery = new ArrayList<String>();
+	ArrayList<String> arrDeliveryStatus = new ArrayList<String>();
+	ArrayList<String> arrDeliveryStartDate = new ArrayList<String>();
+	ArrayList<String> arrDeliveryEndDate = new ArrayList<String>();
+	ArrayList<String> arrWarning = new ArrayList<String>();
+	ArrayList<String> arrTimeTaken = new ArrayList<String>();
+	ArrayList<String> arrTrackerDate = new ArrayList<String>();
+	
     private final DataFormatter fmt = new DataFormatter();
     
     String strTrackingNumber = "";
@@ -176,6 +198,18 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 							strError = strError+"\nDetails not available for Tracking ID - "+strTrackingNumber+" ("+strDeliveryCarrier+") \n";
 						}
 					}
+					System.out.println(arrTrackingService);
+					System.out.println(arrTrackingNos);
+					System.out.println(arrDestinationState);
+					System.out.println(arrDestinationCity);
+					System.out.println(arrDelivery);
+					System.out.println(arrDeliveryStatus);
+					System.out.println(arrDeliveryStartDate);
+					System.out.println(arrDeliveryEndDate);
+					System.out.println(arrWarning);
+					System.out.println(arrTimeTaken);
+					System.out.println(arrTrackerDate);
+					System.out.println(strError);
                 } 
                 catch (Exception e) 
                 {
@@ -364,7 +398,7 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
         System.out.println("Final List of Tracking Numbers: " + arrListTrackingNos);
     }
     
-    void trackingUPS(String strTrackingNos) throws IOException, InterruptedException
+    void trackingUPS(String strTrackingNos) throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException
     {
     	HttpRequest request = HttpRequest.newBuilder()
 				.uri(URI.create("https://onlinetools.ups.com/track/v1/details/"+strTrackingNos+"?locale=en_US"))
@@ -381,6 +415,107 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 		response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 		
 		String responseOutput = response.body();
+		
+		JSONParser parser = new JSONParser();  
+		JSONObject jsonResponse = null;
+		jsonResponse = (JSONObject) parser.parse(responseOutput);
+		JSONObject jsonTrackResponse = (JSONObject)jsonResponse.get("trackResponse");
+		JSONArray jsonShipmentArray = (JSONArray) jsonTrackResponse.get("shipment");
+		JSONObject jsonShipment = (JSONObject)jsonShipmentArray.get(0);
+		
+		JSONArray jsonPackageArray = (JSONArray) jsonShipment.get("package");
+		JSONObject jsonPackage = (JSONObject)jsonPackageArray.get(0);
+		
+		JSONArray jsonActivityArray = (JSONArray) jsonPackage.get("activity");
+		
+		//Recent Shipment Activity
+		JSONObject jsonActivityRecent = (JSONObject)jsonActivityArray.get(0);
+		
+		//Oldest Shipment Activity
+		JSONObject jsonActivityOldest = (JSONObject)jsonActivityArray.get(jsonActivityArray.size()-1);
+		
+		//Formatting Start Date
+		SimpleDateFormat inputFormat = new SimpleDateFormat("yyyyMMdd");
+		SimpleDateFormat outputFormat = new SimpleDateFormat("MM/dd/yyyy");
+		
+		Date dtStartDate = inputFormat.parse(jsonActivityOldest.get("date").toString());
+		String strStartDate = outputFormat.format(dtStartDate);
+		
+		arrDeliveryStartDate.add(strStartDate);
+		
+		JSONObject jsonLocation = (JSONObject)jsonActivityRecent.get("location");
+		JSONObject jsonAddress = (JSONObject)jsonLocation.get("address");
+		
+		//Status of Shipment
+		JSONObject jsonStatus = (JSONObject)jsonActivityRecent.get("status");
+		String strStatusType = jsonStatus.get("type").toString();
+		
+		Date dtRecentDate = inputFormat.parse(jsonActivityRecent.get("date").toString());
+		String strRecentDate = outputFormat.format(dtRecentDate);
+		
+		if(strStatusType.equals("D"))
+		{
+			arrDestinationState.add(jsonAddress.get("stateProvince").toString());
+			arrDestinationCity.add(jsonAddress.get("city").toString());
+			
+			arrDeliveryEndDate.add(strRecentDate);
+			
+			arrDelivery.add("DELIVERED");
+			
+			arrDeliveryStatus.add("DELIVERED"+
+					" // Location - "+jsonAddress.get("city").toString()+", "+jsonAddress.get("stateProvince").toString()+", "+jsonAddress.get("country").toString()+
+					" // Date - "+strRecentDate+
+					" // Time - "+jsonActivityRecent.get("time").toString());	
+			
+			arrWarning.add("");
+			
+			//To find time taken to be delivered
+			long diffInMillies = Math.abs(dtRecentDate.getTime() - dtStartDate.getTime());
+		    long diff = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+		     
+		     arrTimeTaken.add(String.valueOf(diff));
+		}
+		else
+		{
+			arrDestinationState.add("");
+			
+			arrDestinationCity.add("");
+			arrDeliveryEndDate.add("N/A");
+			arrDelivery.add("YET TO BE DELIVERED");
+			
+			arrDeliveryStatus.add(jsonStatus.get("description").toString()+
+					" // Location - "+(jsonAddress.get("city")==null?"N/A":jsonAddress.get("city")).toString()+
+						(jsonAddress.get("stateProvince")==null?"":", "+jsonAddress.get("stateProvince")).toString()+
+						(jsonAddress.get("country")==null?"":", "+jsonAddress.get("country")).toString()+
+					" // Date - "+strRecentDate+
+					" // Time - "+jsonActivityRecent.get("time").toString());
+			
+			//Get today's date and update if delivery exceeds 7 days
+			LocalDate dateObj = LocalDate.now();
+	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+	        String strTodaydate = dateObj.format(formatter);
+	        Date dtTodayDate = null;
+	        dtTodayDate = new SimpleDateFormat("MM/dd/yyyy").parse(strTodaydate);
+	        
+	        long diffInMillies = Math.abs(dtTodayDate.getTime() - dtStartDate.getTime());
+	        long diff = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+	        
+	        if(diff > 7)
+	        {
+	        	arrWarning.add(diff+" days and not delivered. Please check.");
+	        }
+	        else
+	        {
+	        	arrWarning.add("");
+	        }
+	        
+	        arrTimeTaken.add("");
+		}
+		
+		arrTrackerDate.add(strRecentDate);
+		
+		arrTrackingService.add("UPS");
+		arrTrackingNos.add(jsonShipment.get("inquiryNumber").toString());
     }
     
     void trackingOldDominion(String strTrackingNos) throws IOException, InterruptedException
