@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JButton;
@@ -518,7 +519,7 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 		arrTrackingNos.add(jsonShipment.get("inquiryNumber").toString());
     }
     
-    void trackingOldDominion(String strTrackingNos) throws IOException, InterruptedException
+    void trackingOldDominion(String strTrackingNos) throws IOException, InterruptedException, org.json.simple.parser.ParseException, ParseException
     {
     	HttpRequest request = HttpRequest.newBuilder()
 				.uri(URI.create("https://api.odfl.com/tracking/v3.0/shipment.track"))
@@ -533,5 +534,125 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 		response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 		
 		String responseOutput = response.body();
+		
+		JSONParser parser = new JSONParser();  
+		JSONObject jsonResponse = null;
+		jsonResponse = (JSONObject) parser.parse(responseOutput);
+
+		JSONArray jsonTrackArray = (JSONArray) jsonResponse.get("traceInfo");
+		JSONObject jsonTrack = (JSONObject)jsonTrackArray.get(0);
+		
+		
+		arrDestinationState.add(jsonTrack.get("destSvcState").toString());
+		
+		arrDestinationCity.add(jsonTrack.get("destSvcCity").toString());
+		
+		LocalDate dtDelEndDt = LocalDate.parse(jsonTrack.get("updatedEta").toString());
+		
+		arrDeliveryEndDate.add(DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDelEndDt));
+		
+		JSONArray jsonTraceDetailArr = (JSONArray) jsonTrack.get("trackTraceDetail");
+		JSONObject jsonTrackTrace = (JSONObject)jsonTraceDetailArr.get(0);
+		
+		JSONObject jsonTrackTraceStartDate = (JSONObject)jsonTraceDetailArr.get(jsonTraceDetailArr.size()-1);
+		LocalDate dtDelStartDt = LocalDate.parse(jsonTrackTraceStartDate.get("dateTime").toString().substring(0, 10));
+		arrDeliveryStartDate.add(DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDelStartDt));
+		
+		if(jsonTrackTrace.get("status").toString().equals("Delivery Confirmed") || 
+				jsonTrackTrace.get("status").toString().equals("Delivered"))
+		{
+			arrDelivery.add("DELIVERED");
+			arrWarning.add("");
+			
+			//To find time taken to be delivered
+			String strStartDate = DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDelStartDt);
+			Date dtStartDate = new SimpleDateFormat("MM/dd/yyyy").parse(strStartDate);
+			
+			String strEndDate = DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDelEndDt);
+			Date dtEndDate = new SimpleDateFormat("MM/dd/yyyy").parse(strEndDate);
+			
+			long diffInMillies = Math.abs(dtEndDate.getTime() - dtStartDate.getTime());
+	        long diff = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+	        
+	        arrTimeTaken.add(String.valueOf(diff));
+		}
+		else
+		{
+			arrDelivery.add("YET TO BE DELIVERED");
+			
+			String strStartDate = DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDelStartDt);
+			Date dtStartDate = null;
+			try {
+				dtStartDate = new SimpleDateFormat("MM/dd/yyyy").parse(strStartDate);
+			} catch (java.text.ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			LocalDate dateObj = LocalDate.now();
+	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+	        String strTodaydate = dateObj.format(formatter);
+	        Date dtTodayDate = null;
+			try {
+				dtTodayDate = new SimpleDateFormat("MM/dd/yyyy").parse(strTodaydate);
+			} catch (java.text.ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	        
+	        long diffInMillies = Math.abs(dtTodayDate.getTime() - dtStartDate.getTime());
+	        long diff = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+	        
+	        if(diff > 7)
+	        {
+	        	arrWarning.add(diff+" days and not delivered. Please check.");
+	        }
+	        else
+	        {
+	        	arrWarning.add("");
+	        }
+	        
+	        arrTimeTaken.add("");
+		}
+		
+		//Only Delivery Confirmed and no Delivered check in below if, so that location of delivery can be derived
+		if(jsonTrackTrace.get("status").toString().equals("Delivery Confirmed"))
+		{
+			JSONObject jsonTrackTraceStatus = (JSONObject)jsonTraceDetailArr.get(1);
+			
+			LocalDate dtDate = LocalDate.parse(jsonTrackTraceStatus.get("dateTime").toString().substring(0, 10));
+			
+			arrDeliveryStatus.add(jsonTrackTraceStatus.get("statusDesc").toString().toUpperCase()+
+					" // Location - "+jsonTrackTraceStatus.get("city").toString()+
+					", "+jsonTrackTraceStatus.get("state").toString()+
+					", US // Date - "+DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDate)+
+					" // Time - "+jsonTrackTraceStatus.get("dateTime").toString().substring(11, 29));
+			
+			arrTrackerDate.add(DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDate));
+		}
+		else
+		{
+			LocalDate dtDate = LocalDate.parse(jsonTrackTrace.get("dateTime").toString().substring(0, 10));
+			
+			if(jsonTrackTrace.get("city") == null)
+			{
+				arrDeliveryStatus.add(jsonTrackTrace.get("statusDesc").toString()+
+					" // Date - "+DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDate)+
+					" // Time - "+jsonTrackTrace.get("dateTime").toString().substring(11, 29));
+			}
+			else
+			{
+				arrDeliveryStatus.add(jsonTrackTrace.get("statusDesc").toString()+
+						" // Location - "+jsonTrackTrace.get("city").toString()+
+						", "+jsonTrackTrace.get("state").toString()+
+						", US // Date - "+DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDate)+
+						" // Time - "+jsonTrackTrace.get("dateTime").toString().substring(11, 29));
+			}
+			
+			arrTrackerDate.add(DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDate));
+		}
+		
+		arrTrackingService.add("Old Dominion LTL");
+		arrTrackingNos.add(jsonResponse.get("referenceNumber").toString());
     }
 }
