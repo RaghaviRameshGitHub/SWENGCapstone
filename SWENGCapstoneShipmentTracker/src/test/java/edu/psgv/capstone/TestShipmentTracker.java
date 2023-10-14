@@ -223,5 +223,32 @@ class TestShipmentTracker
         assertEquals(expectedWarning, frame.arrWarning);
         assertEquals(expectedTimeTaken, frame.arrTimeTaken);
         assertEquals(expectedTrackerDate, frame.arrTrackerDate);
+
+        frame.trackingOldDominion("03305157277");
+        
+        expectedTrackingService.add("Old Dominion LTL");
+        expectedTrackingNos.add("03305157277");
+        expectedDestinationState.add("NJ");
+        expectedDestinationCity.add("EDISON");
+        expectedDelivery.add("YET TO BE DELIVERED");
+        expectedDeliveryStatus.add("Arrived at EDISON, NJ (SPL) // Location - EDISON, NJ, US // Date - 10/14/2023 // Time - 14:26:54.000-04:00");
+        expectedDeliveryStartDate.add("10/12/2023");
+        expectedDeliveryEndDate.add("10/16/2023");
+        expectedWarning.add("");
+        expectedTimeTaken.add("");
+        expectedTrackerDate.add("10/14/2023");
+        
+        assertEquals(expectedTrackingService, frame.arrTrackingService);
+        assertEquals(expectedTrackingNos, frame.arrTrackingNos);
+        assertEquals(expectedDestinationState, frame.arrDestinationState);
+        assertEquals(expectedDestinationCity, frame.arrDestinationCity);
+        assertEquals(expectedDelivery, frame.arrDelivery);
+        assertEquals(expectedDeliveryStatus, frame.arrDeliveryStatus);
+        assertEquals(expectedDeliveryStartDate, frame.arrDeliveryStartDate);
+        assertEquals(expectedDeliveryEndDate, frame.arrDeliveryEndDate);
+        assertEquals(expectedWarning, frame.arrWarning);
+        assertEquals(expectedTimeTaken, frame.arrTimeTaken);
+        assertEquals(expectedTrackerDate, frame.arrTrackerDate);
+        
     }
 }
