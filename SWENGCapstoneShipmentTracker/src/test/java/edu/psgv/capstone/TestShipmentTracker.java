@@ -112,7 +112,7 @@ class TestShipmentTracker
     }
     
     @Test
-    void testTrackingUPS() throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException 
+    void testTrackingUPSDelivered() throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException 
     {
         ShipmentTrackerFrame frame = new ShipmentTrackerFrame();
         
@@ -153,6 +153,24 @@ class TestShipmentTracker
         assertEquals(expectedWarning, frame.arrWarning);
         assertEquals(expectedTimeTaken, frame.arrTimeTaken);
         assertEquals(expectedTrackerDate, frame.arrTrackerDate);
+    }
+    
+    @Test
+    void testTrackingUPSNotDelivered() throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException 
+    {
+        ShipmentTrackerFrame frame = new ShipmentTrackerFrame();
+        
+        ArrayList<String> expectedTrackingService = new ArrayList<String>();
+    	ArrayList<String> expectedTrackingNos = new ArrayList<String>();
+    	ArrayList<String> expectedDestinationState = new ArrayList<String>();
+    	ArrayList<String> expectedDestinationCity = new ArrayList<String>();
+    	ArrayList<String> expectedDelivery = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryStatus = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryStartDate = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryEndDate = new ArrayList<String>();
+    	ArrayList<String> expectedWarning = new ArrayList<String>();
+    	ArrayList<String> expectedTimeTaken = new ArrayList<String>();
+    	ArrayList<String> expectedTrackerDate = new ArrayList<String>();
         
         frame.trackingUPS("1ZY5F5030391847305");
         
@@ -182,7 +200,7 @@ class TestShipmentTracker
     }
     
     @Test
-    void testTrackingOldDominion() throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException 
+    void testTrackingOldDominionDelivered() throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException 
     {
         ShipmentTrackerFrame frame = new ShipmentTrackerFrame();
         
@@ -223,6 +241,24 @@ class TestShipmentTracker
         assertEquals(expectedWarning, frame.arrWarning);
         assertEquals(expectedTimeTaken, frame.arrTimeTaken);
         assertEquals(expectedTrackerDate, frame.arrTrackerDate);
+    }
+    
+    @Test
+    void testTrackingOldDominionNotDelivered() throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException 
+    {
+        ShipmentTrackerFrame frame = new ShipmentTrackerFrame();
+        
+        ArrayList<String> expectedTrackingService = new ArrayList<String>();
+    	ArrayList<String> expectedTrackingNos = new ArrayList<String>();
+    	ArrayList<String> expectedDestinationState = new ArrayList<String>();
+    	ArrayList<String> expectedDestinationCity = new ArrayList<String>();
+    	ArrayList<String> expectedDelivery = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryStatus = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryStartDate = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryEndDate = new ArrayList<String>();
+    	ArrayList<String> expectedWarning = new ArrayList<String>();
+    	ArrayList<String> expectedTimeTaken = new ArrayList<String>();
+    	ArrayList<String> expectedTrackerDate = new ArrayList<String>();
 
         frame.trackingOldDominion("03305157277");
         
@@ -249,6 +285,5 @@ class TestShipmentTracker
         assertEquals(expectedWarning, frame.arrWarning);
         assertEquals(expectedTimeTaken, frame.arrTimeTaken);
         assertEquals(expectedTrackerDate, frame.arrTrackerDate);
-        
     }
 }
