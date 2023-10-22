@@ -47,7 +47,7 @@ class TestShipmentTracker
         
         frame.arrListCarrierServicesCSV.add("Carrier1");
         frame.arrListCarrierServicesCSV.add("Carrier2");
-        frame.arrListCarrierServicesCSV.add("Carrier2");
+        frame.arrListCarrierServicesCSV.add("Carrier1");
         frame.arrListTrackingNosCSV.add("123");
         frame.arrListTrackingNosCSV.add("456");
         frame.arrListTrackingNosCSV.add("123");
@@ -182,7 +182,7 @@ class TestShipmentTracker
         expectedDeliveryStatus.add("Processing at UPS Facility // Location - Boston, MA, US // Date - 09/21/2023 // Time - 062321");
         expectedDeliveryStartDate.add("09/18/2023");
         expectedDeliveryEndDate.add("N/A");
-        expectedWarning.add("26 days and not delivered. Please check.");
+        expectedWarning.add("28 days and not delivered. Please check.");
         expectedTimeTaken.add("");
         expectedTrackerDate.add("09/21/2023");
         
@@ -260,16 +260,16 @@ class TestShipmentTracker
     	ArrayList<String> expectedTimeTaken = new ArrayList<String>();
     	ArrayList<String> expectedTrackerDate = new ArrayList<String>();
 
-        frame.trackingOldDominion("03305157277");
+        frame.trackingOldDominion("03305157434");
         
         expectedTrackingService.add("Old Dominion LTL");
-        expectedTrackingNos.add("03305157277");
+        expectedTrackingNos.add("03305157434");
         expectedDestinationState.add("NJ");
         expectedDestinationCity.add("EDISON");
         expectedDelivery.add("YET TO BE DELIVERED");
-        expectedDeliveryStatus.add("Arrived at EDISON, NJ (SPL) // Location - EDISON, NJ, US // Date - 10/14/2023 // Time - 14:26:54.000-04:00");
-        expectedDeliveryStartDate.add("10/12/2023");
-        expectedDeliveryEndDate.add("10/16/2023");
+        expectedDeliveryStatus.add("Arrived at COLUMBUS, OH (COH) // Location - COLUMBUS, OH, US // Date - 10/14/2023 // Time - 13:30:14.000-04:00");
+        expectedDeliveryStartDate.add("10/13/2023");
+        expectedDeliveryEndDate.add("10/17/2023");
         expectedWarning.add("");
         expectedTimeTaken.add("");
         expectedTrackerDate.add("10/14/2023");

@@ -153,6 +153,19 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 					{
 						fis = new FileInputStream(new File(strMasterFilePath));
 						readMasterFile();
+						
+						System.out.println("\nData from Master Excel:");
+						System.out.println(arrListCarrierServicesMaster);
+						System.out.println(arrListTrackingNosMaster);
+						System.out.println(arrListDestStateMaster);
+						System.out.println(arrListDestCityMaster);
+						System.out.println(arrListDeliveryMaster);
+						System.out.println(arrListDeliveryStatMaster);
+						System.out.println(arrListDeliveryStartDtMaster);
+						System.out.println(arrListDeliveryEndDtMaster);
+						System.out.println(arrListWarningMaster);
+						System.out.println(arrListTimeTakenMaster);
+						System.out.println(arrListTrackerDateMaster+"\n");
 					} 
 					catch (Exception e1) 
 					{
@@ -189,6 +202,25 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 							{
 								trackingOldDominion(strTrackingNos);
 							}
+							//////////////////////////////Old Dominion LTL End //////////////////////////////////////
+							//////////////////////////////Estes Transportation Starts //////////////////////////////////////
+							else if(strCarrierService.equals("ESTES Transportation"))
+							{
+								trackingEstesTransportation(strTrackingNos);
+							}
+							//////////////////////////////Estes Transportation End //////////////////////////////////////
+							//////////////////////////////Dayton Freight Starts //////////////////////////////////////
+							else if(strCarrierService.equals("DAYTON FREIGHT"))
+							{
+								trackingDaytonFreight(strTrackingNos);
+							}
+							//////////////////////////////Dayton Freight End //////////////////////////////////////
+							//////////////////////////////Averitt LTL Starts //////////////////////////////////////
+							else if(strCarrierService.equals("Averitt LTL"))
+							{
+								trackingAverittLTL(strTrackingNos);
+							}
+							//////////////////////////////Averitt LTL End //////////////////////////////////////
 							else
 							{
 								strError = strError+"\nDetails not available for Tracking ID - "+strTrackingNumber+" ("+strDeliveryCarrier+") \n";
@@ -199,6 +231,7 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 							strError = strError+"\nDetails not available for Tracking ID - "+strTrackingNumber+" ("+strDeliveryCarrier+") \n";
 						}
 					}
+					System.out.println("\nData retrived:");
 					System.out.println(arrTrackingService);
 					System.out.println(arrTrackingNos);
 					System.out.println(arrDestinationState);
@@ -252,6 +285,33 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
             		if(strCarrierService1.equals("Old Dominion LTL"))
     				{
     					if(strListTrackingNo.length()==10)
+    					{
+    						arrListTrackingNosCSV.add("0"+strListTrackingNo);
+    					}
+    					else
+    					{
+    						arrListTrackingNosCSV.add(strListTrackingNo);
+    					}
+    				}
+    				else if(strCarrierService1.equals("ESTES Transportation"))
+    				{
+    			    	arrListTrackingNosCSV.add(strListTrackingNo.replace("-", "").substring(0,10));
+    				}
+    				else if(strCarrierService1.equals("DAYTON FREIGHT"))
+    				{
+    					if(strListTrackingNo.length()==11)
+    					{
+    						arrListTrackingNosCSV.add(strListTrackingNo.substring(2, 11));
+    					}
+    					else
+    					{
+    						arrListTrackingNosCSV.add(strListTrackingNo);
+    					}
+    				}
+    				else if(strCarrierService1.equals("Averitt LTL"))
+    				{
+    					strListTrackingNo = strListTrackingNo.replaceAll("\\s", "");
+    					if(strListTrackingNo.length()==9)
     					{
     						arrListTrackingNosCSV.add("0"+strListTrackingNo);
     					}
@@ -654,5 +714,136 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 		
 		arrTrackingService.add("Old Dominion LTL");
 		arrTrackingNos.add(jsonResponse.get("referenceNumber").toString());
+    }
+    
+    void trackingEstesTransportation(String strTrackingNos) throws IOException, InterruptedException, org.json.simple.parser.ParseException, ParseException
+    {
+    	HttpRequest request = HttpRequest.newBuilder()
+				.uri(URI.create("https://myestes-api.estes-express.com/shipmenttracking/history?pro="+strTrackingNos))
+				.method("GET", HttpRequest.BodyPublishers.noBody())
+				.build();
+    	
+		HttpResponse<String> response = null;
+		response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+		String responseOutput = response.body();
+		
+		JSONParser parser = new JSONParser();  
+		JSONObject jsonResponse = null;
+		jsonResponse = (JSONObject) parser.parse(responseOutput);
+		
+		JSONArray jsonTrackArray = (JSONArray) jsonResponse.get("data");
+		JSONObject jsonTrack = (JSONObject)jsonTrackArray.get(0);
+		
+		JSONObject jsonTrackConsignee = (JSONObject)jsonTrack.get("consigneeParty");
+		JSONObject jsonTrackConsAddress = (JSONObject)jsonTrackConsignee.get("address");
+		
+		arrDestinationState.add(jsonTrackConsAddress.get("state").toString());
+		arrDestinationCity.add(jsonTrackConsAddress.get("city").toString());
+		
+		LocalDate dtDelStartDt = LocalDate.parse(jsonTrack.get("pickupDate").toString());
+		
+		arrDeliveryStartDate.add(DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDelStartDt));
+		
+		JSONObject jsonTrackStatus = (JSONObject)jsonTrack.get("status");
+		if(jsonTrackStatus.get("conciseStatus").toString().equals("Delivered"))
+		{
+			arrDelivery.add("DELIVERED");
+			
+			LocalDate dtDelEndDt = LocalDate.parse(jsonTrackStatus.get("referenceDate").toString());
+			
+			arrDeliveryStatus.add(jsonTrackStatus.get("conciseStatus").toString().toUpperCase()+
+					" // Location - "+jsonTrackConsAddress.get("city").toString()+
+					", "+jsonTrackConsAddress.get("state").toString()+
+					", "+jsonTrackConsAddress.get("country").toString()+
+					" // Date - "+DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDelEndDt)+
+					" // Time - "+jsonTrackStatus.get("referenceTime").toString());
+			
+			
+			arrDeliveryEndDate.add(DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDelEndDt));
+		
+			arrWarning.add("");
+			
+			
+			//To find time taken to be delivered
+			String strStartDate = DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDelStartDt);
+			Date dtStartDate = new SimpleDateFormat("MM/dd/yyyy").parse(strStartDate);
+			
+			String strEndDate = DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDelEndDt);
+			Date dtEndDate = new SimpleDateFormat("MM/dd/yyyy").parse(strEndDate);
+			
+			long diffInMillies = Math.abs(dtEndDate.getTime() - dtStartDate.getTime());
+	        long diff = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+	        
+	        arrTimeTaken.add(String.valueOf(diff));
+	        
+	        arrTrackerDate.add(DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDelEndDt));
+		}
+		else
+		{
+			arrDelivery.add("YET TO BE DELIVERED");
+			
+			LocalDate dtDate = LocalDate.parse(jsonTrackStatus.get("referenceDate").toString());
+			
+			arrDeliveryStatus.add(jsonTrackStatus.get("conciseStatus").toString()+
+					" - "+jsonTrackStatus.get("expandedStatus").toString()+
+					" // Date - "+DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDate)+
+					" // Time - "+jsonTrackStatus.get("referenceTime").toString());
+			
+			JSONObject jsonEstimatedDelivery = (JSONObject)jsonTrack.get("estimatedDelivery");
+			LocalDate dtDelEndDt = LocalDate.parse(jsonEstimatedDelivery.get("startDate").toString());
+			arrDeliveryEndDate.add(DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDelEndDt));
+		
+			String strStartDate = DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDelStartDt);
+			Date dtStartDate = null;
+			dtStartDate = new SimpleDateFormat("MM/dd/yyyy").parse(strStartDate);
+			
+			LocalDate dateObj = LocalDate.now();
+	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+	        String strTodaydate = dateObj.format(formatter);
+	        Date dtTodayDate = null;
+	        dtTodayDate = new SimpleDateFormat("MM/dd/yyyy").parse(strTodaydate);
+	        
+	        long diffInMillies = Math.abs(dtTodayDate.getTime() - dtStartDate.getTime());
+	        long diff = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+	        
+	        if(diff > 7)
+	        {
+	        	arrWarning.add(diff+" days and not delivered. Please check.");
+	        }
+	        else
+	        {
+	        	arrWarning.add("");
+	        }
+	        arrTimeTaken.add("");
+	        
+	        arrTrackerDate.add(DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDate));
+		}
+		
+		arrTrackingService.add("ESTES Transportation");
+		arrTrackingNos.add(jsonTrack.get("pro").toString());
+    }
+    
+    void trackingDaytonFreight(String strTrackingNos) throws IOException, InterruptedException
+    {
+    	HttpRequest request = HttpRequest.newBuilder()
+				.uri(URI.create("https://tools.daytonfreight.com/tracking/detail/"+strTrackingNos))
+				.method("GET", HttpRequest.BodyPublishers.noBody())
+				.build();
+		
+		HttpResponse<String> response = null;
+		response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+		String responseOutput = response.body();
+    }
+    
+    void trackingAverittLTL(String strTrackingNos) throws IOException, InterruptedException
+    {
+    	HttpRequest request = HttpRequest.newBuilder()
+				.uri(URI.create("https://tools.averitt.com/servlet/rsoLTLtrack?content-type=application/json&Number="+strTrackingNos))
+				.method("GET", HttpRequest.BodyPublishers.noBody())
+				.build();
+    	
+		HttpResponse<String> response = null;
+		response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+		String responseOutput = response.body();
     }
 }
