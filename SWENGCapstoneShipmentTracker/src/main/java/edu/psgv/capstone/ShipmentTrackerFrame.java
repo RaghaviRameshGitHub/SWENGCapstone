@@ -131,6 +131,7 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
             if (resultFile == JFileChooser.APPROVE_OPTION) {
                 try 
                 {
+                	Integer intValue = Integer.valueOf("qwer");
                     File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
                     Path = file.toString();
                     
@@ -141,6 +142,7 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 					catch (Exception e)
 				    {
 				    	System.out.println("ERROR - Please choose the right Shipment Summary csv file");
+				    	JOptionPane.showOptionDialog(null, "ERROR - Please choose the right Shipment Summary .csv file","", JOptionPane.DEFAULT_OPTION,JOptionPane.ERROR_MESSAGE, null, new Object[]{}, null);
 				    	return;
 				    }
                     
@@ -170,6 +172,7 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 					catch (Exception e1) 
 					{
 						System.out.println("\nERROR - Master File not available in the path.");
+						JOptionPane.showOptionDialog(null, "ERROR - Master File not available in the path.","", JOptionPane.DEFAULT_OPTION,JOptionPane.ERROR_MESSAGE, null, new Object[]{}, null);
 				    	return;
 					}  
 
@@ -248,6 +251,7 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
                 catch (Exception e) 
                 {
                     System.out.println("ERROR - Please contact admin");
+                    JOptionPane.showOptionDialog(null, "ERROR - Please contact admin","", JOptionPane.DEFAULT_OPTION,JOptionPane.ERROR_MESSAGE, null, new Object[]{}, null);
                     return;
                 }
             }
@@ -823,7 +827,7 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 		arrTrackingNos.add(jsonTrack.get("pro").toString());
     }
     
-    void trackingDaytonFreight(String strTrackingNos) throws IOException, InterruptedException
+    void trackingDaytonFreight(String strTrackingNos) throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException
     {
     	HttpRequest request = HttpRequest.newBuilder()
 				.uri(URI.create("https://tools.daytonfreight.com/tracking/detail/"+strTrackingNos))
@@ -833,6 +837,90 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 		HttpResponse<String> response = null;
 		response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 		String responseOutput = response.body();
+		
+		String result = responseOutput.substring(responseOutput.indexOf("<tracking-detail") + 24, responseOutput.indexOf("</tracking-detail>") - 2).replace("&quot;", "\"");
+		
+		JSONParser parser = new JSONParser();  
+		JSONObject jsonResponse = null;
+		jsonResponse = (JSONObject) parser.parse(result);
+		JSONObject jsonTrack = (JSONObject)jsonResponse.get("trackingResult");
+		
+		JSONObject jsonDestinationState = (JSONObject)jsonTrack.get("destinationServiceCenter");
+		arrDestinationState.add(jsonDestinationState.get("state").toString());
+		arrDestinationCity.add(jsonDestinationState.get("city").toString());
+		
+		LocalDate dtDelStartDt = LocalDate.parse(jsonTrack.get("pickupDate").toString().substring(0, 10));
+		arrDeliveryStartDate.add(DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDelStartDt));
+		
+		
+		JSONObject jsonStatus = (JSONObject)jsonTrack.get("status");
+		if(jsonStatus.get("activityCode").equals("DLV"))
+		{
+			arrDelivery.add("DELIVERED");
+			arrWarning.add("");
+			
+			//To find time taken to be delivered
+			String strStartDate = DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDelStartDt);
+			Date dtStartDate = new SimpleDateFormat("MM/dd/yyyy").parse(strStartDate);
+			
+			LocalDate dtDelEndDt = LocalDate.parse(jsonTrack.get("deliveryDate").toString().substring(0, 10));
+			String strEndDate = DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDelEndDt);
+			Date dtEndDate = new SimpleDateFormat("MM/dd/yyyy").parse(strEndDate);
+			
+			long diffInMillies = Math.abs(dtEndDate.getTime() - dtStartDate.getTime());
+	        long diff = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+	        
+	        arrTimeTaken.add(String.valueOf(diff));
+		}
+		else
+		{
+			arrDelivery.add("YET TO BE DELIVERED");
+			
+			String strStartDate = DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDelStartDt);
+			Date dtStartDate = null;
+			try {
+				dtStartDate = new SimpleDateFormat("MM/dd/yyyy").parse(strStartDate);
+			} catch (java.text.ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			LocalDate dateObj = LocalDate.now();
+	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+	        String strTodaydate = dateObj.format(formatter);
+	        Date dtTodayDate = null;
+	        dtTodayDate = new SimpleDateFormat("MM/dd/yyyy").parse(strTodaydate);
+	        
+	        long diffInMillies = Math.abs(dtTodayDate.getTime() - dtStartDate.getTime());
+	        long diff = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+	        
+	        if(diff > 7)
+	        {
+	        	arrWarning.add(diff+" days and not delivered. Please check.");
+	        }
+	        else
+	        {
+	        	arrWarning.add("");
+	        }
+	        
+	        arrTimeTaken.add("");
+		}
+		
+		LocalDate dtCurrentDt = LocalDate.parse(jsonStatus.get("time").toString().substring(0, 10));
+		
+		arrDeliveryStatus.add(jsonStatus.get("activity").toString()+
+				" // Location - "+jsonStatus.get("city").toString()+ ", " +
+				jsonStatus.get("state").toString()+", US" +
+				" // Date - "+DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtCurrentDt)+
+				" // Time - "+jsonStatus.get("time").toString().substring(11, 19));
+		
+		arrTrackerDate.add(DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtCurrentDt));
+		
+		LocalDate dtDelEndDt = LocalDate.parse(jsonTrack.get("deliveryDate").toString().substring(0, 10));
+		arrDeliveryEndDate.add(DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDelEndDt));
+		
+		arrTrackingService.add("DAYTON FREIGHT");
+		arrTrackingNos.add(jsonTrack.get("pro").toString());
     }
     
     void trackingAverittLTL(String strTrackingNos) throws IOException, InterruptedException

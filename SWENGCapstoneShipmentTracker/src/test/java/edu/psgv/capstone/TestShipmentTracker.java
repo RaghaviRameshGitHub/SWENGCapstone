@@ -156,50 +156,6 @@ class TestShipmentTracker
     }
     
     @Test
-    void testTrackingUPSNotDelivered() throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException 
-    {
-        ShipmentTrackerFrame frame = new ShipmentTrackerFrame();
-        
-        ArrayList<String> expectedTrackingService = new ArrayList<String>();
-    	ArrayList<String> expectedTrackingNos = new ArrayList<String>();
-    	ArrayList<String> expectedDestinationState = new ArrayList<String>();
-    	ArrayList<String> expectedDestinationCity = new ArrayList<String>();
-    	ArrayList<String> expectedDelivery = new ArrayList<String>();
-    	ArrayList<String> expectedDeliveryStatus = new ArrayList<String>();
-    	ArrayList<String> expectedDeliveryStartDate = new ArrayList<String>();
-    	ArrayList<String> expectedDeliveryEndDate = new ArrayList<String>();
-    	ArrayList<String> expectedWarning = new ArrayList<String>();
-    	ArrayList<String> expectedTimeTaken = new ArrayList<String>();
-    	ArrayList<String> expectedTrackerDate = new ArrayList<String>();
-        
-        frame.trackingUPS("1ZY5F5030391847305");
-        
-        expectedTrackingService.add("UPS");
-        expectedTrackingNos.add("1ZY5F5030391847305");
-        expectedDestinationState.add("");
-        expectedDestinationCity.add("");
-        expectedDelivery.add("YET TO BE DELIVERED");
-        expectedDeliveryStatus.add("Processing at UPS Facility // Location - Boston, MA, US // Date - 09/21/2023 // Time - 062321");
-        expectedDeliveryStartDate.add("09/18/2023");
-        expectedDeliveryEndDate.add("N/A");
-        expectedWarning.add("28 days and not delivered. Please check.");
-        expectedTimeTaken.add("");
-        expectedTrackerDate.add("09/21/2023");
-        
-        assertEquals(expectedTrackingService, frame.arrTrackingService);
-        assertEquals(expectedTrackingNos, frame.arrTrackingNos);
-        assertEquals(expectedDestinationState, frame.arrDestinationState);
-        assertEquals(expectedDestinationCity, frame.arrDestinationCity);
-        assertEquals(expectedDelivery, frame.arrDelivery);
-        assertEquals(expectedDeliveryStatus, frame.arrDeliveryStatus);
-        assertEquals(expectedDeliveryStartDate, frame.arrDeliveryStartDate);
-        assertEquals(expectedDeliveryEndDate, frame.arrDeliveryEndDate);
-        assertEquals(expectedWarning, frame.arrWarning);
-        assertEquals(expectedTimeTaken, frame.arrTimeTaken);
-        assertEquals(expectedTrackerDate, frame.arrTrackerDate);
-    }
-    
-    @Test
     void testTrackingOldDominionDelivered() throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException 
     {
         ShipmentTrackerFrame frame = new ShipmentTrackerFrame();
@@ -244,7 +200,7 @@ class TestShipmentTracker
     }
     
     @Test
-    void testTrackingOldDominionNotDelivered() throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException 
+    void testTrackingEstes() throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException 
     {
         ShipmentTrackerFrame frame = new ShipmentTrackerFrame();
         
@@ -260,19 +216,63 @@ class TestShipmentTracker
     	ArrayList<String> expectedTimeTaken = new ArrayList<String>();
     	ArrayList<String> expectedTrackerDate = new ArrayList<String>();
 
-        frame.trackingOldDominion("03305157434");
+        frame.trackingEstesTransportation("0771237122");
         
-        expectedTrackingService.add("Old Dominion LTL");
-        expectedTrackingNos.add("03305157434");
-        expectedDestinationState.add("NJ");
-        expectedDestinationCity.add("EDISON");
-        expectedDelivery.add("YET TO BE DELIVERED");
-        expectedDeliveryStatus.add("Arrived at COLUMBUS, OH (COH) // Location - COLUMBUS, OH, US // Date - 10/14/2023 // Time - 13:30:14.000-04:00");
-        expectedDeliveryStartDate.add("10/13/2023");
-        expectedDeliveryEndDate.add("10/17/2023");
+        expectedTrackingService.add("ESTES Transportation");
+        expectedTrackingNos.add("0771237122");
+        expectedDestinationState.add("MA");
+        expectedDestinationCity.add("BOSTON");
+        expectedDelivery.add("DELIVERED");
+        expectedDeliveryStatus.add("DELIVERED // Location - BOSTON, MA, US // Date - 11/11/2022 // Time - 12:36:12-05:00");
+        expectedDeliveryStartDate.add("11/07/2022");
+        expectedDeliveryEndDate.add("11/11/2022");
         expectedWarning.add("");
-        expectedTimeTaken.add("");
-        expectedTrackerDate.add("10/14/2023");
+        expectedTimeTaken.add("4");
+        expectedTrackerDate.add("11/11/2022");
+        
+        assertEquals(expectedTrackingService, frame.arrTrackingService);
+        assertEquals(expectedTrackingNos, frame.arrTrackingNos);
+        assertEquals(expectedDestinationState, frame.arrDestinationState);
+        assertEquals(expectedDestinationCity, frame.arrDestinationCity);
+        assertEquals(expectedDelivery, frame.arrDelivery);
+        assertEquals(expectedDeliveryStatus, frame.arrDeliveryStatus);
+        assertEquals(expectedDeliveryStartDate, frame.arrDeliveryStartDate);
+        assertEquals(expectedDeliveryEndDate, frame.arrDeliveryEndDate);
+        assertEquals(expectedWarning, frame.arrWarning);
+        assertEquals(expectedTimeTaken, frame.arrTimeTaken);
+        assertEquals(expectedTrackerDate, frame.arrTrackerDate);
+    }
+    
+    @Test
+    void testTrackingDayton() throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException 
+    {
+        ShipmentTrackerFrame frame = new ShipmentTrackerFrame();
+        
+        ArrayList<String> expectedTrackingService = new ArrayList<String>();
+    	ArrayList<String> expectedTrackingNos = new ArrayList<String>();
+    	ArrayList<String> expectedDestinationState = new ArrayList<String>();
+    	ArrayList<String> expectedDestinationCity = new ArrayList<String>();
+    	ArrayList<String> expectedDelivery = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryStatus = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryStartDate = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryEndDate = new ArrayList<String>();
+    	ArrayList<String> expectedWarning = new ArrayList<String>();
+    	ArrayList<String> expectedTimeTaken = new ArrayList<String>();
+    	ArrayList<String> expectedTrackerDate = new ArrayList<String>();
+
+        frame.trackingDaytonFreight("688332792");
+        
+        expectedTrackingService.add("DAYTON FREIGHT");
+        expectedTrackingNos.add("688332792");
+        expectedDestinationState.add("OH");
+        expectedDestinationCity.add("DAYTON");
+        expectedDelivery.add("DELIVERED");
+        expectedDeliveryStatus.add("delivered to destination // Location - SPRINGBORO, OH, US // Date - 04/28/2023 // Time - 12:19:00");
+        expectedDeliveryStartDate.add("04/27/2023");
+        expectedDeliveryEndDate.add("04/28/2023");
+        expectedWarning.add("");
+        expectedTimeTaken.add("1");
+        expectedTrackerDate.add("04/28/2023");
         
         assertEquals(expectedTrackingService, frame.arrTrackingService);
         assertEquals(expectedTrackingNos, frame.arrTrackingNos);
