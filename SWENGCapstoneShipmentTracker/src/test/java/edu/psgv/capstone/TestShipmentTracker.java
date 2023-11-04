@@ -286,4 +286,48 @@ class TestShipmentTracker
         assertEquals(expectedTimeTaken, frame.arrTimeTaken);
         assertEquals(expectedTrackerDate, frame.arrTrackerDate);
     }
+    
+    @Test
+    void testTrackingAveritt() throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException 
+    {
+        ShipmentTrackerFrame frame = new ShipmentTrackerFrame();
+        
+        ArrayList<String> expectedTrackingService = new ArrayList<String>();
+    	ArrayList<String> expectedTrackingNos = new ArrayList<String>();
+    	ArrayList<String> expectedDestinationState = new ArrayList<String>();
+    	ArrayList<String> expectedDestinationCity = new ArrayList<String>();
+    	ArrayList<String> expectedDelivery = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryStatus = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryStartDate = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryEndDate = new ArrayList<String>();
+    	ArrayList<String> expectedWarning = new ArrayList<String>();
+    	ArrayList<String> expectedTimeTaken = new ArrayList<String>();
+    	ArrayList<String> expectedTrackerDate = new ArrayList<String>();
+
+        frame.trackingAverittLTL("0100041955");
+        
+        expectedTrackingService.add("Averitt LTL");
+        expectedTrackingNos.add("0100041955");
+        expectedDestinationState.add("PR");
+        expectedDestinationCity.add("CAGUAS");
+        expectedDelivery.add("YET TO BE DELIVERED");
+        expectedDeliveryStatus.add("N/A");
+        expectedDeliveryStartDate.add("10/25/2023");
+        expectedDeliveryEndDate.add("11/09/2023");
+        expectedWarning.add("8 days and not delivered. Please check.");
+        expectedTimeTaken.add("");
+        expectedTrackerDate.add("N/A");
+        
+        assertEquals(expectedTrackingService, frame.arrTrackingService);
+        assertEquals(expectedTrackingNos, frame.arrTrackingNos);
+        assertEquals(expectedDestinationState, frame.arrDestinationState);
+        assertEquals(expectedDestinationCity, frame.arrDestinationCity);
+        assertEquals(expectedDelivery, frame.arrDelivery);
+        assertEquals(expectedDeliveryStatus, frame.arrDeliveryStatus);
+        assertEquals(expectedDeliveryStartDate, frame.arrDeliveryStartDate);
+        assertEquals(expectedDeliveryEndDate, frame.arrDeliveryEndDate);
+        assertEquals(expectedWarning, frame.arrWarning);
+        assertEquals(expectedTimeTaken, frame.arrTimeTaken);
+        assertEquals(expectedTrackerDate, frame.arrTrackerDate);
+    }
 }

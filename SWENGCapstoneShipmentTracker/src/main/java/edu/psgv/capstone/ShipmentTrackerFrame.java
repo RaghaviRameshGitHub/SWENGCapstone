@@ -131,7 +131,6 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
             if (resultFile == JFileChooser.APPROVE_OPTION) {
                 try 
                 {
-                	Integer intValue = Integer.valueOf("qwer");
                     File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
                     Path = file.toString();
                     
@@ -646,23 +645,13 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 			
 			String strStartDate = DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH).format(dtDelStartDt);
 			Date dtStartDate = null;
-			try {
-				dtStartDate = new SimpleDateFormat("MM/dd/yyyy").parse(strStartDate);
-			} catch (java.text.ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			dtStartDate = new SimpleDateFormat("MM/dd/yyyy").parse(strStartDate);
 			
 			LocalDate dateObj = LocalDate.now();
 	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
 	        String strTodaydate = dateObj.format(formatter);
 	        Date dtTodayDate = null;
-			try {
-				dtTodayDate = new SimpleDateFormat("MM/dd/yyyy").parse(strTodaydate);
-			} catch (java.text.ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+	        dtTodayDate = new SimpleDateFormat("MM/dd/yyyy").parse(strTodaydate);
 	        
 	        long diffInMillies = Math.abs(dtTodayDate.getTime() - dtStartDate.getTime());
 	        long diff = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
@@ -923,16 +912,135 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 		arrTrackingNos.add(jsonTrack.get("pro").toString());
     }
     
-    void trackingAverittLTL(String strTrackingNos) throws IOException, InterruptedException
+    void trackingAverittLTL(String strTrackingNos) throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException
     {
     	HttpRequest request = HttpRequest.newBuilder()
 				.uri(URI.create("https://tools.averitt.com/servlet/rsoLTLtrack?content-type=application/json&Number="+strTrackingNos))
 				.method("GET", HttpRequest.BodyPublishers.noBody())
 				.build();
-    	
 		HttpResponse<String> response = null;
 		response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 		String responseOutput = response.body();
+		
+		//Using the below API to convert the above API response to JSON
+		HttpRequest JSONrequest = HttpRequest.newBuilder()
+				.uri(URI.create("https://html2json.com/api/v1"))
+				.method("POST", HttpRequest.BodyPublishers.ofString(responseOutput))
+				.build();
+		
+		HttpResponse<String> JSONresponse = null;
+		JSONresponse = HttpClient.newHttpClient().send(JSONrequest, HttpResponse.BodyHandlers.ofString());
+		String JSONresponseOutput = JSONresponse.body();
+		
+		JSONParser parser = new JSONParser();  
+		JSONObject jsonResponse = null;
+		jsonResponse = (JSONObject) parser.parse(JSONresponseOutput);
+
+		JSONObject jsonData = (JSONObject)jsonResponse.get("data");
+		
+		String jsonContent = jsonData.get("content").toString();
+		
+		String strTrackingNo = jsonContent.substring(jsonContent.indexOf("PRO Number:\n")+12,
+				jsonContent.indexOf("PRO Number:\n")+22);
+		
+		String strDeliveryPoint = jsonContent.substring(jsonContent.indexOf("Delivery Point:\n")+16,
+				jsonContent.indexOf("\nService Center"));
+		String strDestinationState = strDeliveryPoint.substring(Math.max(strDeliveryPoint.length() - 2, 0));
+		arrDestinationState.add(strDestinationState);
+		String strDestinationCity = strDeliveryPoint.substring(0, strDeliveryPoint.indexOf(",\n"));
+		arrDestinationCity.add(strDestinationCity);
+		
+		String strPickupDate = jsonContent.substring(jsonContent.indexOf("Pickup Date:\n")+13,
+				jsonContent.indexOf("\nPickup Time"));
+		String strDeliveryStartDate = strPickupDate.substring(0, 10);
+		arrDeliveryStartDate.add(strDeliveryStartDate);
+		
+		String strDeliveryStatus = jsonContent.substring(jsonContent.indexOf("\nStatus\n")+8,
+				jsonContent.indexOf("\nPRO Number:\n"));
+		
+		if(strDeliveryStatus.equals("Delivered"))
+		{
+			arrDelivery.add("DELIVERED");
+			arrWarning.add("");
+			
+			String strDeliveryDate = jsonContent.substring(jsonContent.indexOf("\nDate:\n")+7,
+					jsonContent.indexOf("\nDate:\n")+17);
+			arrDeliveryEndDate.add(strDeliveryDate);
+			
+			//To find time taken to be delivered
+			String strStartDate = strDeliveryStartDate;
+			Date dtStartDate = new SimpleDateFormat("MM/dd/yyyy").parse(strStartDate);
+			
+			Date dtEndDate = new SimpleDateFormat("MM/dd/yyyy").parse(strDeliveryDate);
+			
+			long diffInMillies = Math.abs(dtEndDate.getTime() - dtStartDate.getTime());
+	        long diff = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+	        
+	        arrTimeTaken.add(String.valueOf(diff));
+		}
+		else
+		{
+			arrDelivery.add("YET TO BE DELIVERED");
+			
+			String strDeliveryDate = jsonContent.substring(jsonContent.indexOf("\nEstimated Service Date:\n")+25,
+					jsonContent.indexOf("\nEstimated Service Time:\n"));
+			arrDeliveryEndDate.add(strDeliveryDate);
+			
+			String strStartDate = strDeliveryStartDate;
+			Date dtStartDate = null;
+			dtStartDate = new SimpleDateFormat("MM/dd/yyyy").parse(strStartDate);
+			
+			LocalDate dateObj = LocalDate.now();
+	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+	        String strTodaydate = dateObj.format(formatter);
+	        Date dtTodayDate = null;
+	        dtTodayDate = new SimpleDateFormat("MM/dd/yyyy").parse(strTodaydate);
+	        
+	        long diffInMillies = Math.abs(dtTodayDate.getTime() - dtStartDate.getTime());
+	        long diff = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+	        
+	        if(diff > 7)
+	        {
+	        	arrWarning.add(diff+" days and not delivered. Please check.");
+	        }
+	        else
+	        {
+	        	arrWarning.add("");
+	        }
+	        
+	        arrTimeTaken.add("");
+		}
+		
+		JSONArray jsonTablesArray = (JSONArray) jsonData.get("tables");
+		if(jsonTablesArray.size() > 0)
+		{	
+			JSONObject jsonTables = (JSONObject)jsonTablesArray.get(0);
+			JSONArray jsonRowsArray = (JSONArray) jsonTables.get("rows");
+			JSONObject jsonDetailsRows = (JSONObject)jsonRowsArray.get(jsonRowsArray.size() - 1);
+			JSONArray jsonDetailCols = (JSONArray) jsonDetailsRows.get("cols");
+			
+			JSONObject jsonDelStatus = (JSONObject)jsonDetailCols.get(2);
+			String strDelStatus = jsonDelStatus.get("nodeValue").toString();
+			
+			JSONObject jsonDelLocation = (JSONObject)jsonDetailCols.get(0);
+			String strDelLocation = jsonDelLocation.get("nodeValue").toString();
+			
+			JSONObject jsonDelDtTime = (JSONObject)jsonDetailCols.get(1);
+			String strDelDtTime = jsonDelDtTime.get("nodeValue").toString();
+			
+			arrDeliveryStatus.add(strDelStatus+
+					" // Location - "+strDelLocation+", US"+
+					" // Date&Time - "+strDelDtTime);
+			
+			arrTrackerDate.add(strDelDtTime.toString().substring(0, 10));
+		}
+		else
+		{
+			arrDeliveryStatus.add("N/A");
+			arrTrackerDate.add("N/A");
+		}
+		
+		arrTrackingService.add("Averitt LTL");
+		arrTrackingNos.add(strTrackingNo);
     }
 }
-
