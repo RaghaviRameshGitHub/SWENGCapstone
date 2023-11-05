@@ -156,7 +156,95 @@ class TestShipmentTracker
     }
     
     @Test
+    void testTrackingUPSNotDelivered() throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException 
+    {
+        ShipmentTrackerFrame frame = new ShipmentTrackerFrame();
+        
+        ArrayList<String> expectedTrackingService = new ArrayList<String>();
+    	ArrayList<String> expectedTrackingNos = new ArrayList<String>();
+    	ArrayList<String> expectedDestinationState = new ArrayList<String>();
+    	ArrayList<String> expectedDestinationCity = new ArrayList<String>();
+    	ArrayList<String> expectedDelivery = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryStatus = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryStartDate = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryEndDate = new ArrayList<String>();
+    	ArrayList<String> expectedWarning = new ArrayList<String>();
+    	ArrayList<String> expectedTimeTaken = new ArrayList<String>();
+    	ArrayList<String> expectedTrackerDate = new ArrayList<String>();
+
+        frame.trackingUPS("1ZY5F5030337138021");
+        
+        expectedTrackingService.add("UPS");
+        expectedTrackingNos.add("1ZY5F5030337138021");
+        expectedDestinationState.add("");
+        expectedDestinationCity.add("");
+        expectedDelivery.add("YET TO BE DELIVERED");
+        expectedDeliveryStatus.add("Arrived at Facility // Location - Knoxville, TN, US // Date - 11/05/2023 // Time - 012700");
+        expectedDeliveryStartDate.add("11/03/2023");
+        expectedDeliveryEndDate.add("N/A");
+        expectedWarning.add("");
+        expectedTimeTaken.add("");
+        expectedTrackerDate.add("11/05/2023");
+        
+        assertEquals(expectedTrackingService, frame.arrTrackingService);
+        assertEquals(expectedTrackingNos, frame.arrTrackingNos);
+        assertEquals(expectedDestinationState, frame.arrDestinationState);
+        assertEquals(expectedDestinationCity, frame.arrDestinationCity);
+        assertEquals(expectedDelivery, frame.arrDelivery);
+        assertEquals(expectedDeliveryStatus, frame.arrDeliveryStatus);
+        assertEquals(expectedDeliveryStartDate, frame.arrDeliveryStartDate);
+        assertEquals(expectedDeliveryEndDate, frame.arrDeliveryEndDate);
+        assertEquals(expectedWarning, frame.arrWarning);
+        assertEquals(expectedTimeTaken, frame.arrTimeTaken);
+        assertEquals(expectedTrackerDate, frame.arrTrackerDate);
+    }
+    
+    @Test
     void testTrackingOldDominionDelivered() throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException 
+    {
+        ShipmentTrackerFrame frame = new ShipmentTrackerFrame();
+        
+        ArrayList<String> expectedTrackingService = new ArrayList<String>();
+    	ArrayList<String> expectedTrackingNos = new ArrayList<String>();
+    	ArrayList<String> expectedDestinationState = new ArrayList<String>();
+    	ArrayList<String> expectedDestinationCity = new ArrayList<String>();
+    	ArrayList<String> expectedDelivery = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryStatus = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryStartDate = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryEndDate = new ArrayList<String>();
+    	ArrayList<String> expectedWarning = new ArrayList<String>();
+    	ArrayList<String> expectedTimeTaken = new ArrayList<String>();
+    	ArrayList<String> expectedTrackerDate = new ArrayList<String>();
+
+        frame.trackingOldDominion("03305242442");
+        
+        expectedTrackingService.add("Old Dominion LTL");
+        expectedTrackingNos.add("03305242442");
+        expectedDestinationState.add("NY");
+        expectedDestinationCity.add("BROOKLYN");
+        expectedDelivery.add("YET TO BE DELIVERED");
+        expectedDeliveryStatus.add("Arrived at BROOKLYN, NY (QNY) // Location - BROOKLYN, NY, US // Date - 11/01/2023 // Time - 04:53:59.000-04:00");
+        expectedDeliveryStartDate.add("10/30/2023");
+        expectedDeliveryEndDate.add("11/06/2023");
+        expectedWarning.add("");
+        expectedTimeTaken.add("");
+        expectedTrackerDate.add("11/01/2023");
+        
+        assertEquals(expectedTrackingService, frame.arrTrackingService);
+        assertEquals(expectedTrackingNos, frame.arrTrackingNos);
+        assertEquals(expectedDestinationState, frame.arrDestinationState);
+        assertEquals(expectedDestinationCity, frame.arrDestinationCity);
+        assertEquals(expectedDelivery, frame.arrDelivery);
+        assertEquals(expectedDeliveryStatus, frame.arrDeliveryStatus);
+        assertEquals(expectedDeliveryStartDate, frame.arrDeliveryStartDate);
+        assertEquals(expectedDeliveryEndDate, frame.arrDeliveryEndDate);
+        assertEquals(expectedWarning, frame.arrWarning);
+        assertEquals(expectedTimeTaken, frame.arrTimeTaken);
+        assertEquals(expectedTrackerDate, frame.arrTrackerDate);
+    }
+    
+    @Test
+    void testTrackingOldDominionNotDelivered() throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException 
     {
         ShipmentTrackerFrame frame = new ShipmentTrackerFrame();
         
@@ -200,7 +288,7 @@ class TestShipmentTracker
     }
     
     @Test
-    void testTrackingEstes() throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException 
+    void testTrackingEstesDelivered() throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException 
     {
         ShipmentTrackerFrame frame = new ShipmentTrackerFrame();
         
@@ -229,6 +317,50 @@ class TestShipmentTracker
         expectedWarning.add("");
         expectedTimeTaken.add("4");
         expectedTrackerDate.add("11/11/2022");
+        
+        assertEquals(expectedTrackingService, frame.arrTrackingService);
+        assertEquals(expectedTrackingNos, frame.arrTrackingNos);
+        assertEquals(expectedDestinationState, frame.arrDestinationState);
+        assertEquals(expectedDestinationCity, frame.arrDestinationCity);
+        assertEquals(expectedDelivery, frame.arrDelivery);
+        assertEquals(expectedDeliveryStatus, frame.arrDeliveryStatus);
+        assertEquals(expectedDeliveryStartDate, frame.arrDeliveryStartDate);
+        assertEquals(expectedDeliveryEndDate, frame.arrDeliveryEndDate);
+        assertEquals(expectedWarning, frame.arrWarning);
+        assertEquals(expectedTimeTaken, frame.arrTimeTaken);
+        assertEquals(expectedTrackerDate, frame.arrTrackerDate);
+    }
+    
+    @Test
+    void testTrackingEstesNotDelivered() throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException 
+    {
+        ShipmentTrackerFrame frame = new ShipmentTrackerFrame();
+        
+        ArrayList<String> expectedTrackingService = new ArrayList<String>();
+    	ArrayList<String> expectedTrackingNos = new ArrayList<String>();
+    	ArrayList<String> expectedDestinationState = new ArrayList<String>();
+    	ArrayList<String> expectedDestinationCity = new ArrayList<String>();
+    	ArrayList<String> expectedDelivery = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryStatus = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryStartDate = new ArrayList<String>();
+    	ArrayList<String> expectedDeliveryEndDate = new ArrayList<String>();
+    	ArrayList<String> expectedWarning = new ArrayList<String>();
+    	ArrayList<String> expectedTimeTaken = new ArrayList<String>();
+    	ArrayList<String> expectedTrackerDate = new ArrayList<String>();
+
+        frame.trackingEstesTransportation("0771279000");
+        
+        expectedTrackingService.add("ESTES Transportation");
+        expectedTrackingNos.add("0771279000");
+        expectedDestinationState.add("NY");
+        expectedDestinationCity.add("STATEN ISLAND");
+        expectedDelivery.add("YET TO BE DELIVERED");
+        expectedDeliveryStatus.add("In Transit - Trailer Closed at Estes facility at Knoxville, TN (074) // Date - 11/04/2023 // Time - 14:43:35-04:00");
+        expectedDeliveryStartDate.add("11/03/2023");
+        expectedDeliveryEndDate.add("11/09/2023");
+        expectedWarning.add("");
+        expectedTimeTaken.add("");
+        expectedTrackerDate.add("11/04/2023");
         
         assertEquals(expectedTrackingService, frame.arrTrackingService);
         assertEquals(expectedTrackingNos, frame.arrTrackingNos);
@@ -310,12 +442,12 @@ class TestShipmentTracker
         expectedTrackingNos.add("0100041955");
         expectedDestinationState.add("PR");
         expectedDestinationCity.add("CAGUAS");
-        expectedDelivery.add("YET TO BE DELIVERED");
+        expectedDelivery.add("DELIVERED");
         expectedDeliveryStatus.add("N/A");
         expectedDeliveryStartDate.add("10/25/2023");
-        expectedDeliveryEndDate.add("11/09/2023");
-        expectedWarning.add("8 days and not delivered. Please check.");
-        expectedTimeTaken.add("");
+        expectedDeliveryEndDate.add("11/02/2023");
+        expectedWarning.add("");
+        expectedTimeTaken.add("8");
         expectedTrackerDate.add("N/A");
         
         assertEquals(expectedTrackingService, frame.arrTrackingService);

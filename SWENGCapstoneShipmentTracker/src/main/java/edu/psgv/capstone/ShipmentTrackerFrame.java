@@ -1028,11 +1028,19 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 			JSONObject jsonDelDtTime = (JSONObject)jsonDetailCols.get(1);
 			String strDelDtTime = jsonDelDtTime.get("nodeValue").toString();
 			
-			arrDeliveryStatus.add(strDelStatus+
-					" // Location - "+strDelLocation+", US"+
-					" // Date&Time - "+strDelDtTime);
-			
-			arrTrackerDate.add(strDelDtTime.toString().substring(0, 10));
+			if(strDelDtTime.length() > 9)
+			{
+				arrDeliveryStatus.add(strDelStatus+
+						" // Location - "+strDelLocation+", US"+
+						" // Date&Time - "+strDelDtTime);
+				
+				arrTrackerDate.add(strDelDtTime.toString().substring(0, 10));
+			}
+			else
+			{
+				arrDeliveryStatus.add("N/A");
+				arrTrackerDate.add("N/A");
+			}
 		}
 		else
 		{
