@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
@@ -20,6 +21,9 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JButton;
@@ -31,6 +35,7 @@ import javax.swing.JOptionPane;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.simple.JSONArray;
@@ -233,19 +238,24 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 							strError = strError+"\nDetails not available for Tracking ID - "+strTrackingNumber+" ("+strDeliveryCarrier+") \n";
 						}
 					}
+					
 					System.out.println("\nData retrived:");
-					System.out.println(arrTrackingService);
 					System.out.println(arrTrackingNos);
+					System.out.println(arrTrackingService);
 					System.out.println(arrDestinationState);
 					System.out.println(arrDestinationCity);
 					System.out.println(arrDelivery);
 					System.out.println(arrDeliveryStatus);
+					System.out.println(arrTrackerDate);
 					System.out.println(arrDeliveryStartDate);
 					System.out.println(arrDeliveryEndDate);
-					System.out.println(arrWarning);
 					System.out.println(arrTimeTaken);
-					System.out.println(arrTrackerDate);
+					System.out.println(arrWarning);
 					System.out.println(strError);
+					
+					writeExcelFile();
+					
+					return;
                 } 
                 catch (Exception e) 
                 {
@@ -1050,5 +1060,100 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 		
 		arrTrackingService.add("Averitt LTL");
 		arrTrackingNos.add(strTrackingNo);
+    }
+    
+    void writeExcelFile()
+    {
+    	XSSFWorkbook workbook = new XSSFWorkbook();
+		
+		XSSFSheet spreadsheet = workbook.createSheet("Delivery Details");
+		
+		XSSFRow row;
+		
+		Map<String, Object[]> deliveryData = new TreeMap<String, Object[]>();
+		
+		int intExcelRowNo = 1;
+		String strExcelRowNo = Integer.toString(intExcelRowNo);
+		
+		//The header of output excel
+		deliveryData.put(strExcelRowNo, new Object[] 
+				{ 
+						"Tracking No", "Carrier", "State", "City", "Status", "Detailed Status", "Last Update", 
+						"Delivery Start Date", "Delivery End Date", "Time Taken", "Warning"
+				});
+		
+		//Appending master details for which tracking ID details were not searched in the output excel
+		for (int i=0; i<arrListTrackingNosMaster.size(); i++)
+		{
+			if(!(arrListTrackingNos.contains(arrListTrackingNosMaster.get(i))))
+			{
+				intExcelRowNo = intExcelRowNo+1;
+				strExcelRowNo = Integer.toString(intExcelRowNo);
+				deliveryData.put(strExcelRowNo, new Object[] 
+				{ 
+					arrListTrackingNosMaster.get(i), arrListCarrierServicesMaster.get(i), arrListDestStateMaster.get(i), 
+					arrListDestCityMaster.get(i), arrListDeliveryMaster.get(i), 
+					arrListDeliveryStatMaster.get(i), arrListTrackerDateMaster.get(i), 
+					arrListDeliveryStartDtMaster.get(i), arrListDeliveryEndDtMaster.get(i), 
+					arrListTimeTakenMaster.get(i), arrListWarningMaster.get(i)
+				});
+			}
+		}
+		
+		//Appending the newly fetched details of the IDs in the output excel
+		for (int i=0; i<arrTrackingNos.size(); i++)
+		{
+			intExcelRowNo = intExcelRowNo+1;
+			strExcelRowNo = Integer.toString(intExcelRowNo);
+			deliveryData.put(strExcelRowNo, new Object[] 
+			{ 
+				arrTrackingNos.get(i), arrTrackingService.get(i), arrDestinationState.get(i), 
+				arrDestinationCity.get(i), arrDelivery.get(i), 
+				arrDeliveryStatus.get(i), arrTrackerDate.get(i), 
+				arrDeliveryStartDate.get(i), arrDeliveryEndDate.get(i), 
+				arrTimeTaken.get(i), arrWarning.get(i)
+			});
+		}
+		
+		Set<String> keyid = deliveryData.keySet();
+		  
+       int rowid = 0;
+ 
+       // writing the data into the sheets...
+ 
+       for (String key : keyid) 
+       {
+           row = spreadsheet.createRow(rowid++);
+           Object[] objectArr = deliveryData.get(key);
+           int cellid = 0;
+ 
+           for (Object obj : objectArr) 
+           {
+               Cell cell = row.createCell(cellid++);
+               cell.setCellValue((String)obj);
+           }
+       }
+       
+       FileOutputStream out = null;
+       try 
+       {
+    	   out = new FileOutputStream(new File(strMasterFilePath));
+    	   workbook.write(out);
+    	   out.close();
+       } 
+       catch (Exception e) 
+       {
+			System.out.println("ERROR - Cannot access the master file because it is currently "
+					+ "being used. \nPlease close the master file and run the application.");
+			JOptionPane.showOptionDialog(null, "ERROR - Cannot access the master file because it is "
+					+ "currently being used. \nPlease close the master file and run the application.","", JOptionPane.DEFAULT_OPTION,JOptionPane.ERROR_MESSAGE, null, new Object[]{}, null);
+			return;
+	   }
+       
+       System.out.println("\nPlease find your file in the following path - \n" + strMasterFilePath);
+       System.out.println("\n");
+
+       JOptionPane.showOptionDialog(null, "Please find your file in the following path - \n" + strMasterFilePath,
+    		   "", JOptionPane.DEFAULT_OPTION,JOptionPane.INFORMATION_MESSAGE, null, new Object[]{}, null);
     }
 }
