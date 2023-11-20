@@ -18,6 +18,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -87,6 +89,19 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 	ArrayList<String> arrWarning = new ArrayList<String>();
 	ArrayList<String> arrTimeTaken = new ArrayList<String>();
 	ArrayList<String> arrTrackerDate = new ArrayList<String>();
+	
+	//Lists of Final output data
+	ArrayList<String> arrTrackingServiceFinal = new ArrayList<String>();
+	ArrayList<String> arrTrackingNosFinal = new ArrayList<String>();
+	ArrayList<String> arrDestinationStateFinal = new ArrayList<String>();
+	ArrayList<String> arrDestinationCityFinal = new ArrayList<String>();
+	ArrayList<String> arrDeliveryFinal = new ArrayList<String>();
+	ArrayList<String> arrDeliveryStatusFinal = new ArrayList<String>();
+	ArrayList<String> arrDeliveryStartDateFinal = new ArrayList<String>();
+	ArrayList<String> arrDeliveryEndDateFinal = new ArrayList<String>();
+	ArrayList<String> arrWarningFinal = new ArrayList<String>();
+	ArrayList<String> arrTimeTakenFinal = new ArrayList<String>();
+	ArrayList<String> arrTrackerDateFinal = new ArrayList<String>();
 	
     private final DataFormatter fmt = new DataFormatter();
     
@@ -346,6 +361,8 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
         System.out.println("Input Tracking Numbers with duplicates: " + arrListTrackingNosCSV);
         
         // All the required data of CSV are stored in arrList***CSV Lists
+        
+        return;
     }
     
     void removeDuplicatesCSV()
@@ -363,6 +380,8 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
         
         System.out.println("\nInput Carrier Services without duplicates: " + arrListCarrierServicesInput);
         System.out.println("Input Tracking Numbers without duplicates: " + arrListTrackingNosInput);
+        
+        return;
     }
     
     void readMasterFile() throws IOException 
@@ -441,6 +460,8 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 			String valueWarning= fmt.formatCellValue(cellsWarning);
 			arrListWarningMaster.add(valueWarning);
 		}
+		
+		return;
     }
 
     void compareAndPopulateLists() 
@@ -470,6 +491,8 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 		
 		System.out.println("Final List of Carrier Services: " + arrListCarrierServices);
         System.out.println("Final List of Tracking Numbers: " + arrListTrackingNos);
+        
+        return;
     }
     
     void trackingUPS(String strTrackingNos) throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException
@@ -590,6 +613,8 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 		
 		arrTrackingService.add("UPS");
 		arrTrackingNos.add(jsonShipment.get("inquiryNumber").toString());
+		
+		return;
     }
     
     void trackingOldDominion(String strTrackingNos) throws IOException, InterruptedException, org.json.simple.parser.ParseException, ParseException
@@ -717,6 +742,8 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 		
 		arrTrackingService.add("Old Dominion LTL");
 		arrTrackingNos.add(jsonResponse.get("referenceNumber").toString());
+		
+		return;
     }
     
     void trackingEstesTransportation(String strTrackingNos) throws IOException, InterruptedException, org.json.simple.parser.ParseException, ParseException
@@ -824,6 +851,8 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 		
 		arrTrackingService.add("ESTES Transportation");
 		arrTrackingNos.add(jsonTrack.get("pro").toString());
+		
+		return;
     }
     
     void trackingDaytonFreight(String strTrackingNos) throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException
@@ -920,6 +949,8 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 		
 		arrTrackingService.add("DAYTON FREIGHT");
 		arrTrackingNos.add(jsonTrack.get("pro").toString());
+		
+		return;
     }
     
     void trackingAverittLTL(String strTrackingNos) throws IOException, InterruptedException, ParseException, org.json.simple.parser.ParseException
@@ -1060,10 +1091,88 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 		
 		arrTrackingService.add("Averitt LTL");
 		arrTrackingNos.add(strTrackingNo);
+		
+		return;
     }
     
     void writeExcelFile()
     {
+    	//Appending master details for which tracking ID details were not searched in the output excel
+    	for (int i=0; i<arrListTrackingNosMaster.size(); i++)
+		{
+			if(!(arrListTrackingNos.contains(arrListTrackingNosMaster.get(i))))
+			{
+				arrTrackingNosFinal.add(arrListTrackingNosMaster.get(i));
+				arrTrackingServiceFinal.add(arrListCarrierServicesMaster.get(i));
+				arrDestinationStateFinal.add(arrListDestStateMaster.get(i));
+				arrDestinationCityFinal.add(arrListDestCityMaster.get(i));
+				arrDeliveryFinal.add(arrListDeliveryMaster.get(i));
+				arrDeliveryStatusFinal.add(arrListDeliveryStatMaster.get(i));
+				arrTrackerDateFinal.add(arrListTrackerDateMaster.get(i));
+				arrDeliveryStartDateFinal.add(arrListDeliveryStartDtMaster.get(i));
+				arrDeliveryEndDateFinal.add(arrListDeliveryEndDtMaster.get(i));
+				arrTimeTakenFinal.add(arrListTimeTakenMaster.get(i));
+				arrWarningFinal.add(arrListWarningMaster.get(i));
+			}
+		}
+    	
+    	//Appending the newly fetched details of the IDs in the output excel list
+    	for (int i=0; i<arrTrackingNos.size(); i++)
+		{
+    		arrTrackingNosFinal.add(arrTrackingNos.get(i));
+			arrTrackingServiceFinal.add(arrTrackingService.get(i));
+			arrDestinationStateFinal.add(arrDestinationState.get(i));
+			arrDestinationCityFinal.add(arrDestinationCity.get(i));
+			arrDeliveryFinal.add(arrDelivery.get(i));
+			arrDeliveryStatusFinal.add(arrDeliveryStatus.get(i));
+			arrTrackerDateFinal.add(arrTrackerDate.get(i));
+			arrDeliveryStartDateFinal.add(arrDeliveryStartDate.get(i));
+			arrDeliveryEndDateFinal.add(arrDeliveryEndDate.get(i));
+			arrTimeTakenFinal.add(arrTimeTaken.get(i));
+			arrWarningFinal.add(arrWarning.get(i));
+		}
+    	
+    	// Sorting of the data based on ShipDate in descending order using Merge Sort
+    	ArrayList<String[]> pairs = new ArrayList<>();
+    	for (int i = 0; i < arrDeliveryStartDateFinal.size(); i++) {
+    	    pairs.add(new String[]{
+    	            arrDeliveryStartDateFinal.get(i), arrTrackingNosFinal.get(i), arrTrackingServiceFinal.get(i),
+    	            arrDestinationStateFinal.get(i), arrDestinationCityFinal.get(i), arrDeliveryFinal.get(i),
+    	            arrDeliveryStatusFinal.get(i), arrTrackerDateFinal.get(i), arrDeliveryEndDateFinal.get(i),
+    	            arrTimeTakenFinal.get(i), arrWarningFinal.get(i)
+    	    });
+    	}
+
+    	mergeSort(pairs, 0, pairs.size() - 1);
+
+    	// Update the original arrays with sorted values
+    	for (int i = 0; i < pairs.size(); i++) {
+    	    arrDeliveryStartDateFinal.set(i, pairs.get(i)[0]);
+    	    arrTrackingNosFinal.set(i, pairs.get(i)[1]);
+    	    arrTrackingServiceFinal.set(i, pairs.get(i)[2]);
+    	    arrDestinationStateFinal.set(i, pairs.get(i)[3]);
+    	    arrDestinationCityFinal.set(i, pairs.get(i)[4]);
+    	    arrDeliveryFinal.set(i, pairs.get(i)[5]);
+    	    arrDeliveryStatusFinal.set(i, pairs.get(i)[6]);
+    	    arrTrackerDateFinal.set(i, pairs.get(i)[7]);
+    	    arrDeliveryEndDateFinal.set(i, pairs.get(i)[8]);
+    	    arrTimeTakenFinal.set(i, pairs.get(i)[9]);
+    	    arrWarningFinal.set(i, pairs.get(i)[10]);
+    	}
+        
+        System.out.println("\nData sorted:");
+		System.out.println(arrTrackingNosFinal);
+		System.out.println(arrTrackingServiceFinal);
+		System.out.println(arrDestinationStateFinal);
+		System.out.println(arrDestinationCityFinal);
+		System.out.println(arrDeliveryFinal);
+		System.out.println(arrDeliveryStatusFinal);
+		System.out.println(arrTrackerDateFinal);
+		System.out.println(arrDeliveryStartDateFinal);
+		System.out.println(arrDeliveryEndDateFinal);
+		System.out.println(arrTimeTakenFinal);
+		System.out.println(arrWarningFinal);
+    	
     	XSSFWorkbook workbook = new XSSFWorkbook();
 		
 		XSSFSheet spreadsheet = workbook.createSheet("Delivery Details");
@@ -1077,41 +1186,22 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 		
 		//The header of output excel
 		deliveryData.put(strExcelRowNo, new Object[] 
-				{ 
-						"Tracking No", "Carrier", "State", "City", "Status", "Detailed Status", "Last Update", 
-						"Delivery Start Date", "Delivery End Date", "Time Taken", "Warning"
-				});
-		
-		//Appending master details for which tracking ID details were not searched in the output excel
-		for (int i=0; i<arrListTrackingNosMaster.size(); i++)
-		{
-			if(!(arrListTrackingNos.contains(arrListTrackingNosMaster.get(i))))
-			{
-				intExcelRowNo = intExcelRowNo+1;
-				strExcelRowNo = Integer.toString(intExcelRowNo);
-				deliveryData.put(strExcelRowNo, new Object[] 
-				{ 
-					arrListTrackingNosMaster.get(i), arrListCarrierServicesMaster.get(i), arrListDestStateMaster.get(i), 
-					arrListDestCityMaster.get(i), arrListDeliveryMaster.get(i), 
-					arrListDeliveryStatMaster.get(i), arrListTrackerDateMaster.get(i), 
-					arrListDeliveryStartDtMaster.get(i), arrListDeliveryEndDtMaster.get(i), 
-					arrListTimeTakenMaster.get(i), arrListWarningMaster.get(i)
-				});
-			}
-		}
-		
-		//Appending the newly fetched details of the IDs in the output excel
-		for (int i=0; i<arrTrackingNos.size(); i++)
+		{ 
+				"Tracking No", "Carrier", "State", "City", "Status", "Detailed Status", "Last Update", 
+				"Delivery Start Date", "Delivery End Date", "Time Taken", "Warning"
+		});
+
+		for (int i=0; i<arrTrackingNosFinal.size(); i++)
 		{
 			intExcelRowNo = intExcelRowNo+1;
 			strExcelRowNo = Integer.toString(intExcelRowNo);
 			deliveryData.put(strExcelRowNo, new Object[] 
 			{ 
-				arrTrackingNos.get(i), arrTrackingService.get(i), arrDestinationState.get(i), 
-				arrDestinationCity.get(i), arrDelivery.get(i), 
-				arrDeliveryStatus.get(i), arrTrackerDate.get(i), 
-				arrDeliveryStartDate.get(i), arrDeliveryEndDate.get(i), 
-				arrTimeTaken.get(i), arrWarning.get(i)
+				arrTrackingNosFinal.get(i), arrTrackingServiceFinal.get(i), arrDestinationStateFinal.get(i), 
+				arrDestinationCityFinal.get(i), arrDeliveryFinal.get(i), 
+				arrDeliveryStatusFinal.get(i), arrTrackerDateFinal.get(i), 
+				arrDeliveryStartDateFinal.get(i), arrDeliveryEndDateFinal.get(i), 
+				arrTimeTakenFinal.get(i), arrWarningFinal.get(i)
 			});
 		}
 		
@@ -1140,6 +1230,51 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
     	   out = new FileOutputStream(new File(strMasterFilePath));
     	   workbook.write(out);
     	   out.close();
+    	   
+    	   arrListCarrierServicesCSV.clear();
+    	   arrListTrackingNosCSV.clear();
+    	   
+    	   arrListCarrierServicesInput.clear();
+    	   arrListTrackingNosInput.clear();
+			
+    	   arrListTrackingNosMaster.clear();
+    	   arrListCarrierServicesMaster.clear();
+    	   arrListDestStateMaster.clear();
+    	   arrListDestCityMaster.clear();
+    	   arrListDeliveryMaster.clear();
+    	   arrListDeliveryStatMaster.clear();
+    	   arrListTrackerDateMaster.clear();
+    	   arrListDeliveryStartDtMaster.clear();
+    	   arrListDeliveryEndDtMaster.clear();
+    	   arrListTimeTakenMaster.clear();
+    	   arrListWarningMaster.clear();
+    	   
+    	   arrListCarrierServices.clear();
+    	   arrListTrackingNos.clear();
+    	   
+    	   arrTrackingService.clear();
+    	   arrTrackingNos.clear();
+    	   arrDestinationState.clear();
+    	   arrDestinationCity.clear();
+    	   arrDelivery.clear();
+    	   arrDeliveryStatus.clear();
+    	   arrDeliveryStartDate.clear();
+    	   arrDeliveryEndDate.clear();
+    	   arrWarning.clear();
+    	   arrTimeTaken.clear();
+    	   arrTrackerDate.clear();
+    	   
+    	   arrTrackingServiceFinal.clear();
+    	   arrTrackingNosFinal.clear();
+    	   arrDestinationStateFinal.clear();
+    	   arrDestinationCityFinal.clear();
+    	   arrDeliveryFinal.clear();
+    	   arrDeliveryStatusFinal.clear();
+    	   arrDeliveryStartDateFinal.clear();
+    	   arrDeliveryEndDateFinal.clear();
+    	   arrWarningFinal.clear();
+    	   arrTimeTakenFinal.clear();
+    	   arrTrackerDateFinal.clear();
        } 
        catch (Exception e) 
        {
@@ -1155,5 +1290,57 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
 
        JOptionPane.showOptionDialog(null, "Please find your file in the following path - \n" + strMasterFilePath,
     		   "", JOptionPane.DEFAULT_OPTION,JOptionPane.INFORMATION_MESSAGE, null, new Object[]{}, null);
+       
+       return;
+    }
+    
+    // Merge Sort function
+    private static void mergeSort(ArrayList<String[]> arr, int left, int right) 
+    {
+        if (left < right) {
+            int mid = left + (right - left) / 2;
+
+            mergeSort(arr, left, mid);
+            mergeSort(arr, mid + 1, right);
+
+            merge(arr, left, mid, right);
+        }
+        
+        return;
+    }
+
+    // Merge function
+    private static void merge(ArrayList<String[]> arr, int left, int mid, int right) 
+    {
+        int n1 = mid - left + 1;
+        int n2 = right - mid;
+
+        ArrayList<String[]> leftArr = new ArrayList<>(arr.subList(left, left + n1));
+        ArrayList<String[]> rightArr = new ArrayList<>(arr.subList(mid + 1, mid + 1 + n2));
+
+        int i = 0, j = 0, k = left;
+
+        try {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+            while (i < n1 && j < n2) {
+                if (dateFormat.parse(leftArr.get(i)[0]).compareTo(dateFormat.parse(rightArr.get(j)[0])) >= 0) {
+                    arr.set(k++, leftArr.get(i++));
+                } else {
+                    arr.set(k++, rightArr.get(j++));
+                }
+            }
+
+            while (i < n1) {
+                arr.set(k++, leftArr.get(i++));
+            }
+
+            while (j < n2) {
+                arr.set(k++, rightArr.get(j++));
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        
+        return;
     }
 }
