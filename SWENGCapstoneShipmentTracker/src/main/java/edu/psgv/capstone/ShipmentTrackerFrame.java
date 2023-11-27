@@ -1134,9 +1134,11 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
     	
     	// Sorting of the data based on ShipDate in descending order using Merge Sort
     	ArrayList<String[]> pairs = new ArrayList<>();
-    	for (int i = 0; i < arrDeliveryStartDateFinal.size(); i++) {
-    	    pairs.add(new String[]{
-    	            arrDeliveryStartDateFinal.get(i), arrTrackingNosFinal.get(i), arrTrackingServiceFinal.get(i),
+    	for (int i = 0; i < arrDeliveryStartDateFinal.size(); i++) 
+    	{
+    	    pairs.add(new String[]
+    	    {
+    	    		arrDeliveryStartDateFinal.get(i), arrTrackingNosFinal.get(i), arrTrackingServiceFinal.get(i),
     	            arrDestinationStateFinal.get(i), arrDestinationCityFinal.get(i), arrDeliveryFinal.get(i),
     	            arrDeliveryStatusFinal.get(i), arrTrackerDateFinal.get(i), arrDeliveryEndDateFinal.get(i),
     	            arrTimeTakenFinal.get(i), arrWarningFinal.get(i)
@@ -1295,7 +1297,7 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
     }
     
     // Merge Sort function
-    private static void mergeSort(ArrayList<String[]> arr, int left, int right) 
+    void mergeSort(ArrayList<String[]> arr, int left, int right) 
     {
         if (left < right) {
             int mid = left + (right - left) / 2;
@@ -1310,7 +1312,7 @@ public class ShipmentTrackerFrame extends JFrame implements ActionListener
     }
 
     // Merge function
-    private static void merge(ArrayList<String[]> arr, int left, int mid, int right) 
+    void merge(ArrayList<String[]> arr, int left, int mid, int right) 
     {
         int n1 = mid - left + 1;
         int n2 = right - mid;
